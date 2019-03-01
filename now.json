@@ -1,0 +1,18 @@
+{
+  "version": 2,
+  "name": "nju33--example-slack-ping-pong",
+  "alias": "nju33--example-slack-ping-pong.now.sh",
+  "env": {
+    "NODE_ENV": "production",
+    "SLACK_OAUTH_ACCESS_TOKEN": "@example-slack-ping-pong--slack-oauth-access-token",
+    "SLACK_LOGGER_CHANNEL": "@example-slack-ping-pong--slack-logger-channel"
+  },
+  "builds": [
+    {"src": "src/**/@(slash-command).js", "use": "@now/node"},
+    {"src": "src/handle-action.js", "use": "@now/node"}
+  ],
+  "routes": [
+    {"src": "^/command/(.*)", "dest": "/src/command/$1/slash-command.js"},
+    {"src": "^/handle-action", "dest": "/src/handle-action.js"}
+  ]
+}

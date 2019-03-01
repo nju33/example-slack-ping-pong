@@ -1,0 +1,22 @@
+{
+  "name": "example-slack-ping-pong",
+  "version": "0.0.0",
+  "main": "index.js",
+  "repository": "nju33/example-slack-ping-pong",
+  "author": "nju33 <nju33.ki@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "dev": "node -r dotenv/config `yarn bin micro-dev` src/_dev.js --port 9098",
+    "deploy": "now && now alias && now rm -sy `node -p \"require('./now.json').alias\"`"
+  },
+  "dependencies": {
+    "@nju33/slack": "^1.6.6",
+    "body-parser": "^1.18.3",
+    "micro": "^9.3.3"
+  },
+  "devDependencies": {
+    "dotenv": "^6.2.0",
+    "micro-dev": "^3.0.0",
+    "microrouter": "^3.1.3"
+  }
+}
