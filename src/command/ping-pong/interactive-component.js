@@ -9,41 +9,48 @@ const isRelevantAction = action => action.callback_id === CALLBACK_ID;
 
 module.exports = (req, res) =>
   bodyParser.urlencoded({extended: false})(req, res, async () => {
+    log.debug('Env', {NODE_ENV: process.env.NODE_ENV});
+
+    log.debug('New request', {
+      method: req.method,
+      url: req.url,
+      body: req.body
+    });
+
     if (req.method === 'GET') {
       return send(res, 200, `works ${req.url}`);
     } else if (req.method !== 'POST') {
       return send(res, 406);
     }
 
-    const parsedURL = parse(req.url, true);
-    const query = new Query(parsedURL.query);
-    if (!query.serveoSubdomain) {
-      return send(res, 400, {
-        message: `required \`serveo-subdomain\` query in url`
-      });
-    }
+    if (process.env.NODE_ENV === 'production') {
+      const parsedURL = parse(req.url, true);
+      const query = new Query(parsedURL.query);
+      if (!query.serveoSubdomain) {
+        return send(res, 400, {
+          message: `required \`serveo-subdomain\` query in url`
+        });
+      }
 
-    const action = JSON.parse(req.body.payload);
-    if (!isRelevantAction(action)) {
-      return Promise.reject();
-    }
+      const action = JSON.parse(req.body.payload);
+      if (!isRelevantAction(action)) {
+        return Promise.reject();
+      }
 
-    console.log('req.url: ', req.url);
-    console.log('process.env.NODE_ENV: ', process.env.NODE_ENV);
-    console.log('query.serveoSubdomain: ', query.serveoSubdomain);
-    console.log('req.body: ', req.body);
-    const serveoTransfer = new ServeoTransfer(
-      query.serveoSubdomain,
-      parsedURL.path
-    );
+      const serveoTransfer = new ServeoTransfer(
+        query.serveoSubdomain,
+        parsedURL.path
+      );
 
-    if (process.env.NODE_ENV === 'production' && (await serveoTransfer.ok())) {
-      await serveoTransfer.transfer(req.body);
-      return;
+      if (await serveoTransfer.ok()) {
+        await serveoTransfer.transfer(req.body);
+        return;
+      }
     }
 
     /**
-     * occurred error in case of the send response to serveo.
+     * To cause error when sent response to serveo.
+     * In the below, sending response only when running on '.now.sh'.
      */
     if (req.headers.host.indexOf('.now.sh') > -1) {
       return send(res, 200, {text: 'pong'});
